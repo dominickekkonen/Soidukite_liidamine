@@ -1,22 +1,33 @@
-﻿namespace Soidukite_liidese_rakendamine_C__keeles
+﻿using System.Text;
+
+namespace Soidukite_liidese_rakendamine_C__keeles
 {
     internal class Program
     {
         static void Main(string[] args)
         {
+            Console.InputEncoding = Encoding.UTF8;
+            Console.OutputEncoding = Encoding.UTF8;
             List<ISõiduk> sõidukid = new List<ISõiduk>();
+            LoeFailist(sõidukid);
+
+            // Ask for gas price once at startup
+            Console.CursorVisible = true;
+            double kütuseHind = KüsiArv("Sisesta hetke kütuseühiku hind (€/L): ");
+            Console.CursorVisible = false;
+
             string[] menüüValikud = {
-            "Lisa Auto",
-            "Lisa Jalgratas",
-            "Lisa Buss",
-            "Loe andmed failist",
-            "Kuva tulemused ja kogukulu",
-            "Välju"
-        };
+        "Lisa Auto",
+        "Lisa Jalgratas",
+        "Lisa Buss",
+        "Loe andmed failist",
+        "Kuva tulemused ja kogukulu",
+        "Salvesta andmed",
+        "Välju"
+    };
 
             int valitudIndeks = 0;
             bool programmJookseb = true;
-            Console.CursorVisible = false;
 
             while (programmJookseb)
             {
@@ -41,8 +52,16 @@
                         case 1: LisaJalgratas(sõidukid); break;
                         case 2: LisaBuss(sõidukid); break;
                         case 3: LoeFailist(sõidukid); break;
-                        case 4: KuvaAndmed(sõidukid); break;
-                        case 5: programmJookseb = false; break;
+                        case 4: KuvaAndmed(sõidukid, kütuseHind); break;  // pass price
+                        case 5:
+                            SalvestaFaili(sõidukid);
+                            Console.WriteLine("Andmed on salvestatud!");
+                            break;
+                        case 6:
+                            SalvestaFaili(sõidukid);
+                            Console.WriteLine("Andmed salvestatud. Nägemist!");
+                            programmJookseb = false;
+                            break;
                     }
 
                     if (programmJookseb)
@@ -121,7 +140,7 @@
                 Console.WriteLine("Viga! Palun sisesta positiivne arv.");
             }
         }
-        static void KuvaAndmed(List<ISõiduk> nimekiri)
+        static void KuvaAndmed(List<ISõiduk> nimekiri, double kütuseHind)
         {
             if (nimekiri.Count == 0)
             {
@@ -130,16 +149,39 @@
             }
 
             Console.WriteLine("\n--- SÕIDUKITE TULEMUSED ---");
+            Console.WriteLine($"Kütuseühiku hind: {kütuseHind:F2} €/L\n");
             double koguKulu = 0;
 
             foreach (var sõiduk in nimekiri)
             {
                 Console.WriteLine(sõiduk.ToString());
+
+                if (sõiduk is Auto auto)
+                {
+                    double liitrid = auto.ArvutaKulu();
+                    double eurodes = liitrid * kütuseHind;
+                    Console.WriteLine($"  Kütusekulu: {liitrid:F2} L  →  {eurodes:F2} €");
+                }
+                else if (sõiduk is Buss buss)
+                {
+                    double liitrid = buss.ArvutaKulu();
+                    double eurodes = liitrid * kütuseHind;
+                    double reisijaKoht = buss.ReisijateArv > 0 ? eurodes / buss.ReisijateArv : 0;
+                    Console.WriteLine($"  Kütusekulu: {liitrid:F2} L  →  {eurodes:F2} €");
+                    Console.WriteLine($"  Kulu reisija kohta: {reisijaKoht:F2} €  ({buss.ReisijateArv} reisijat)");
+                }
+                else if (sõiduk is Jalgratas)
+                {
+                    Console.WriteLine("  Kütusekulu puudub (jalgratas)");
+                }
+
+                Console.WriteLine();
                 koguKulu += sõiduk.ArvutaKulu();
             }
 
             Console.WriteLine("---------------------------");
-            Console.WriteLine($"Kõikide sõidukite kulu kokku: {koguKulu:F2} liitrit.");
+            Console.WriteLine($"Kõikide sõidukite kütusekulu kokku: {koguKulu:F2} L");
+            Console.WriteLine($"Kogumaksumus kütusele: {koguKulu * kütuseHind:F2} €");
         }
         static void LoeFailist(List<ISõiduk> nimekiri)
         {
