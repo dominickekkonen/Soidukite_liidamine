@@ -10,21 +10,19 @@ namespace Soidukite_liidese_rakendamine_C__keeles
             Console.OutputEncoding = Encoding.UTF8;
             List<ISõiduk> sõidukid = new List<ISõiduk>();
             LoeFailist(sõidukid);
-
-            // Ask for gas price once at startup
             Console.CursorVisible = true;
             double kütuseHind = KüsiArv("Sisesta hetke kütuseühiku hind (€/L): ");
             Console.CursorVisible = false;
-
             string[] menüüValikud = {
-        "Lisa Auto",
-        "Lisa Jalgratas",
-        "Lisa Buss",
-        "Loe andmed failist",
-        "Kuva tulemused ja kogukulu",
-        "Salvesta andmed",
-        "Välju"
-    };
+            "Lisa Auto",
+            "Lisa Jalgratas",
+            "Lisa Buss",
+            "Lisa Mootorratas",
+            "Loe andmed failist",
+            "Kuva tulemused ja kogukulu",
+            "Salvesta andmed",
+            "Välju"
+            };
 
             int valitudIndeks = 0;
             bool programmJookseb = true;
@@ -51,13 +49,14 @@ namespace Soidukite_liidese_rakendamine_C__keeles
                         case 0: LisaAuto(sõidukid); break;
                         case 1: LisaJalgratas(sõidukid); break;
                         case 2: LisaBuss(sõidukid); break;
-                        case 3: LoeFailist(sõidukid); break;
-                        case 4: KuvaAndmed(sõidukid, kütuseHind); break;  // pass price
-                        case 5:
+                        case 3: LisaMootorratas(sõidukid); break;
+                        case 4: LoeFailist(sõidukid); break;
+                        case 5: KuvaAndmed(sõidukid, kütuseHind); break;
+                        case 6:
                             SalvestaFaili(sõidukid);
                             Console.WriteLine("Andmed on salvestatud!");
                             break;
-                        case 6:
+                        case 7:
                             SalvestaFaili(sõidukid);
                             Console.WriteLine("Andmed salvestatud. Nägemist!");
                             programmJookseb = false;
@@ -128,6 +127,17 @@ namespace Soidukite_liidese_rakendamine_C__keeles
             SalvestaFaili(nimekiri);
             Console.WriteLine("Buss on lisatud ja andmed on salvestatud!");
         }
+        static void LisaMootorratas(List<ISõiduk> nimekiri)
+        {
+            Console.Write("Sisesta mootorratta mudel: ");
+            string mudel = Console.ReadLine();
+            double kulu = KüsiArv("Sisesta kulu (L/100km): ");
+            double km = KüsiArv("Sisesta läbitud kilomeetrid: ");
+
+            nimekiri.Add(new Mootorratas(mudel, kulu, km));
+            SalvestaFaili(nimekiri);
+            Console.WriteLine("Mootorratas on lisatud ja andmed on salvestatud!");
+        }
         static double KüsiArv(string küsimus)
         {
             while (true)
@@ -187,7 +197,6 @@ namespace Soidukite_liidese_rakendamine_C__keeles
         {
             string failitee = "andmed.txt";
             if (!File.Exists(failitee)) return;
-
             try
             {
                 string[] read = File.ReadAllLines(failitee);
@@ -222,7 +231,6 @@ namespace Soidukite_liidese_rakendamine_C__keeles
 
             foreach (var s in nimekiri)
             {
-                // Kontrollime, mis tüüpi objektiga on tegu, et õige formaat salvestada
                 if (s is Auto a)
                     read.Add($"Auto,{a.Mudel},{a.Kütusekulu100km},{a.Kilomeetrid}");
                 else if (s is Buss b)
