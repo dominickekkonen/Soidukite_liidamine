@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 
 namespace Soidukite_liidese_rakendamine_C__keeles
 {
@@ -200,7 +201,7 @@ namespace Soidukite_liidese_rakendamine_C__keeles
             try
             {
                 string[] read = File.ReadAllLines(failitee);
-                nimekiri.Clear(); // Tühjendame nimekirja, et ei tekiks duplikaate
+                nimekiri.Clear();
 
                 foreach (string rida in read)
                 {
@@ -213,9 +214,14 @@ namespace Soidukite_liidese_rakendamine_C__keeles
                         nimekiri.Add(new Buss(osad[1], double.Parse(osad[2]), double.Parse(osad[3]), int.Parse(osad[4])));
                     else if (tüüp == "Jalgratas")
                     {
-                        // Konverteerime teksti tagasi enumiks
                         Rattatüüp rTüüp = (Rattatüüp)Enum.Parse(typeof(Rattatüüp), osad[1]);
                         nimekiri.Add(new Jalgratas(rTüüp, double.Parse(osad[2])));
+                    }
+                    else if (tüüp == "Mootorratas")
+                    {
+                        double kulu = double.Parse(osad[2], CultureInfo.InvariantCulture);
+                        double km = double.Parse(osad[3], CultureInfo.InvariantCulture);
+                        nimekiri.Add(new Mootorratas(osad[1], kulu, km));
                     }
                 }
                 Console.WriteLine("Andmed failist imporditud!");
@@ -237,6 +243,8 @@ namespace Soidukite_liidese_rakendamine_C__keeles
                     read.Add($"Buss,{b.Liin},{b.Kütusekulu100km},{b.Kilomeetrid},{b.ReisijateArv}");
                 else if (s is Jalgratas j)
                     read.Add($"Jalgratas,{j.Tüüp},{j.Kilomeetrid}");
+                else if (s is Mootorratas m)
+                    read.Add($"Mootorratas,{m.Mudel},{m.Kütusekulu100km},{m.Kilomeetrid}");
             }
 
             File.WriteAllLines("andmed.txt", read);
